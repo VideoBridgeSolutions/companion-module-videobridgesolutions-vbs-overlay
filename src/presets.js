@@ -49,22 +49,33 @@ function button(category, name, text, actionId, options, feedbacks, styleOverrid
 }
 
 function togglePreset(category, name, text, target, activeBg, inactiveBg) {
+  const dedicatedFeedbackMap = {
+    desk_lock: 'desk_lock_state',
+    show_mode: 'show_mode_state',
+    midi_sender: 'midi_sender_state',
+    midi_receiver: 'midi_receiver_state',
+    timecode_sender: 'timecode_sender_state',
+    timecode_receiver: 'timecode_receiver_state',
+  }
+  const feedbackId = dedicatedFeedbackMap[target] || 'boolean_target'
+  const feedback = {
+    feedbackId,
+    style: {
+      color: COLORS.white,
+      bgcolor: activeBg,
+    },
+  }
+  if (feedbackId === 'boolean_target') {
+    feedback.options = { target }
+  }
+
   return button(
     category,
     name,
     text,
     'toggle_boolean_target',
     { target },
-    [
-      {
-        feedbackId: 'boolean_target',
-        options: { target },
-        style: {
-          color: COLORS.white,
-          bgcolor: activeBg,
-        },
-      },
-    ],
+    [feedback],
     {
       bgcolor: inactiveBg || COLORS.dark,
       color: COLORS.white,

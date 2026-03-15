@@ -38,3 +38,8 @@ That should generate the packaged `pkg/` output and a `.tgz` suitable for import
 - Commit and tag as `vX.Y.Z`
 - Build and test the package
 - Submit the tagged version in the Bitfocus Developer Portal
+
+
+## Current known-good baseline
+
+This source bundle matches the local module build where live status variables and button feedback refresh are working together correctly.

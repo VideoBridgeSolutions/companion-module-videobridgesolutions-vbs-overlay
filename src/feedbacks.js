@@ -16,6 +16,10 @@ function getDynamicTimecodePresetChoices(self) {
   return fallback
 }
 
+function targetState(self, target) {
+  return !!self.getBooleanTargetState(target)
+}
+
 module.exports = function updateFeedbacks(self) {
   self.setFeedbackDefinitions({
     transport_state: {
@@ -64,7 +68,73 @@ module.exports = function updateFeedbacks(self) {
           ],
         },
       ],
-      callback: (feedback) => !!self.getBooleanTargetState(feedback.options.target),
+      callback: (feedback) => targetState(self, feedback.options.target),
+    },
+
+    desk_lock_state: {
+      type: 'boolean',
+      name: 'Desk Lock is locked',
+      defaultStyle: {
+        color: combineRgb(255, 255, 255),
+        bgcolor: combineRgb(220, 20, 20),
+      },
+      options: [],
+      callback: () => targetState(self, 'desk_lock'),
+    },
+
+    show_mode_state: {
+      type: 'boolean',
+      name: 'Show Mode is enabled',
+      defaultStyle: {
+        color: combineRgb(255, 255, 255),
+        bgcolor: combineRgb(0, 210, 60),
+      },
+      options: [],
+      callback: () => targetState(self, 'show_mode'),
+    },
+
+    midi_sender_state: {
+      type: 'boolean',
+      name: 'MIDI sender is enabled',
+      defaultStyle: {
+        color: combineRgb(255, 255, 255),
+        bgcolor: combineRgb(0, 210, 60),
+      },
+      options: [],
+      callback: () => targetState(self, 'midi_sender'),
+    },
+
+    midi_receiver_state: {
+      type: 'boolean',
+      name: 'MIDI receiver is enabled',
+      defaultStyle: {
+        color: combineRgb(255, 255, 255),
+        bgcolor: combineRgb(0, 210, 60),
+      },
+      options: [],
+      callback: () => targetState(self, 'midi_receiver'),
+    },
+
+    timecode_sender_state: {
+      type: 'boolean',
+      name: 'Timecode sender is enabled',
+      defaultStyle: {
+        color: combineRgb(255, 255, 255),
+        bgcolor: combineRgb(0, 210, 60),
+      },
+      options: [],
+      callback: () => targetState(self, 'timecode_sender'),
+    },
+
+    timecode_receiver_state: {
+      type: 'boolean',
+      name: 'Timecode receiver is enabled',
+      defaultStyle: {
+        color: combineRgb(255, 255, 255),
+        bgcolor: combineRgb(0, 210, 60),
+      },
+      options: [],
+      callback: () => targetState(self, 'timecode_receiver'),
     },
 
     current_preset: {

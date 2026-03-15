@@ -594,7 +594,7 @@ class VbsOverlayOscInstance extends InstanceBase {
       this.state.remoteLinkRttMs = ''
       this.state.remoteLastPollAt = new Date().toISOString()
       this.pushAllVariableValues()
-      this.checkAllFeedbacks()
+      this.checkFeedbacks()
       throw err
     } finally {
       this.statusPollInFlight = false
@@ -653,6 +653,15 @@ class VbsOverlayOscInstance extends InstanceBase {
       ltcInputActive: !!tc.ltcInputActive,
       ltcOutputEnabled: !!tc.ltcOutputEnabled,
       ltcOutputActive: !!tc.ltcOutputActive,
+      ltcLevelDb: Number.isFinite(Number(tc.ltcLevelDb)) ? Number(tc.ltcLevelDb) : 0,
+      externalDelayFrames: Number.isFinite(Number(tc.externalDelayFrames)) ? Number(tc.externalDelayFrames) : 0,
+      generatorDelayFrames: Number.isFinite(Number(tc.generatorDelayFrames)) ? Number(tc.generatorDelayFrames) : 0,
+      activePresetIndex: Number.isFinite(Number(tc.activePresetIndex)) ? Number(tc.activePresetIndex) : 0,
+      activePresetName: String(tc.activePresetName || ''),
+      activePresetTimecode: String(tc.activePresetTimecode || ''),
+      previewPresetIndex: Number.isFinite(Number(tc.previewPresetIndex)) ? Number(tc.previewPresetIndex) : 0,
+      previewPresetName: String(tc.previewPresetName || ''),
+      previewPresetTimecode: String(tc.previewPresetTimecode || ''),
 
       receivedFrame: tc.receivedFrame ?? '',
       receivedText: String(tc.receivedText || ''),
@@ -704,8 +713,27 @@ class VbsOverlayOscInstance extends InstanceBase {
     if (this.state.remoteTimecode.transportState) {
       this.state.transportState = this.state.remoteTimecode.transportState
     }
+    if (snapshot.deskLockEnabled !== undefined || snapshot.DeskLockEnabled !== undefined) {
+      this.state.deskLock = !!(snapshot.deskLockEnabled ?? snapshot.DeskLockEnabled)
+    }
+    if (snapshot.showModeEnabled !== undefined || snapshot.ShowModeEnabled !== undefined) {
+      this.state.showMode = !!(snapshot.showModeEnabled ?? snapshot.ShowModeEnabled)
+    }
+    const midi = snapshot.midi || snapshot.Midi || {}
+    if (midi.senderEnabled !== undefined || midi.SenderEnabled !== undefined) {
+      this.state.midiSender = !!(midi.senderEnabled ?? midi.SenderEnabled)
+    }
+    if (midi.receiverEnabled !== undefined || midi.ReceiverEnabled !== undefined) {
+      this.state.midiReceiver = !!(midi.receiverEnabled ?? midi.ReceiverEnabled)
+    }
     this.state.timecodeSender = !!this.state.remoteTimecode.senderEnabled
     this.state.timecodeReceiver = !!this.state.remoteTimecode.receiverEnabled
+    this.state.ltcLevelDb = this.state.remoteTimecode.ltcLevelDb
+    this.state.externalDelayFrames = this.state.remoteTimecode.externalDelayFrames
+    this.state.generatorDelayFrames = this.state.remoteTimecode.generatorDelayFrames
+    if (this.state.remoteTimecode.activePresetIndex) {
+      this.state.currentPreset = this.state.remoteTimecode.activePresetIndex
+    }
 
     if (presetsChanged) {
       this.log('debug', `Remote preset list updated (${nextPresets.length} presets)`)
@@ -718,7 +746,7 @@ class VbsOverlayOscInstance extends InstanceBase {
     }
 
     this.pushAllVariableValues()
-    this.checkAllFeedbacks()
+    this.checkFeedbacks()
   }
 
   pushAllVariableValues() {
@@ -965,7 +993,7 @@ class VbsOverlayOscInstance extends InstanceBase {
     if (patch.lastSyncMode !== undefined) this.state.lastSyncMode = patch.lastSyncMode
 
     this.pushAllVariableValues()
-    this.checkAllFeedbacks()
+    this.checkFeedbacks()
   }
 
   async sendAndTrack(path, args, patch) {
