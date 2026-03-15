@@ -1,0 +1,38 @@
+{
+  "$schema": "../node_modules/@companion-module/base/assets/manifest.schema.json",
+  "type": "connection",
+  "id": "videobridgesolutions-vbs-overlay",
+  "name": "VBS Overlay",
+  "shortname": "VBS Overlay",
+  "description": "Control and monitor VBS Overlay from Bitfocus Companion over OSC/UDP and remote status TCP.",
+  "version": "0.0.0",
+  "license": "MIT",
+  "repository": "git+https://github.com/VideoBridgeSolutions/companion-module-videobridgesolutions-vbs-overlay.git",
+  "bugs": "https://github.com/VideoBridgeSolutions/companion-module-videobridgesolutions-vbs-overlay/issues",
+  "maintainers": [
+    {
+      "name": "Pierre-Yves Halbig",
+      "email": "support@videobridgesolutions.com"
+    }
+  ],
+  "runtime": {
+    "type": "node22",
+    "api": "nodejs-ipc",
+    "apiVersion": "0.0.0",
+    "entrypoint": "../src/main.js"
+  },
+  "legacyIds": [
+    "videobridgesolutions-vbs-overlay-osc"
+  ],
+  "manufacturer": "Video Bridge Solutions",
+  "products": [
+    "VBS Overlay"
+  ],
+  "keywords": [
+    "osc",
+    "timecode",
+    "midi",
+    "art-net",
+    "monitoring"
+  ]
+}
