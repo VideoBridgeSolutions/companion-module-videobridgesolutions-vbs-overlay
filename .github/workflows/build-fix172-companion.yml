@@ -1,4 +1,4 @@
-name: Build Fix172 Companion Package
+name: Build VBS Overlay Companion 1.0.1
 
 on:
   push:
@@ -33,14 +33,14 @@ jobs:
         run: |
           set -euo pipefail
           find . -maxdepth 3 -type f \( -name '*.tgz' -o -name '*.tar.gz' -o -name '*.zip' \) -print
-          zip -qr companion-module-videobridgesolutions-vbs-overlay-fix172-source.zip companion src package.json LICENSE README.md BITFOCUS_RELEASE_CHECKLIST.md
+          zip -qr companion-module-videobridgesolutions-vbs-overlay-1.0.1-source.zip companion src package.json LICENSE README.md BITFOCUS_RELEASE_CHECKLIST.md
           mkdir -p out
           find . -maxdepth 3 -type f \( -name '*.tgz' -o -name '*.tar.gz' \) -exec cp {} out/ \;
-          cp companion-module-videobridgesolutions-vbs-overlay-fix172-source.zip out/
+          cp companion-module-videobridgesolutions-vbs-overlay-1.0.1-source.zip out/
 
       - name: Upload package artifact
         uses: actions/upload-artifact@v4
         with:
-          name: companion-vbs-overlay-fix172-official
+          name: companion-vbs-overlay-1.0.1-official
           path: out/*
           if-no-files-found: error
