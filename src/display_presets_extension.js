@@ -1,10 +1,20 @@
 const DISPLAY_PRESET_OSC_PATH = '/vbs/display/preset/recall'
 
-let instanceRef = null
-let lastSignature = ''
+const instanceRefs = new Set()
 
 function registerInstance(self) {
-  if (self) instanceRef = new WeakRef(self)
+  if (!self) return
+
+  for (const ref of Array.from(instanceRefs)) {
+    const current = ref.deref?.()
+    if (!current) {
+      instanceRefs.delete(ref)
+      continue
+    }
+    if (current === self) return
+  }
+
+  instanceRefs.add(new WeakRef(self))
 }
 
 function normalizeDisplayPresets(snapshot) {
@@ -43,19 +53,35 @@ function safeKey(preset) {
   return String(raw).replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64)
 }
 
-function updateFromSnapshot(snapshot) {
-  const self = instanceRef?.deref?.()
-  if (!self) return
+function instanceMatchesStatusTarget(self, host, port) {
+  try {
+    const statusHost = String(self.getStatusHost?.() || self.config?.status_host || self.config?.host || '').trim().toLowerCase()
+    const statusPort = Number(self.getStatusPort?.() || self.config?.status_port || 40555)
+    return statusHost === String(host || '').trim().toLowerCase() && statusPort === Number(port)
+  } catch {
+    return false
+  }
+}
 
+function updateFromSnapshot(snapshot, host, port) {
   const presets = normalizeDisplayPresets(snapshot)
   const signature = presetSignature(presets)
-  if (signature === lastSignature) return
 
-  lastSignature = signature
-  self.state.remoteDisplayPresets = presets
+  for (const ref of Array.from(instanceRefs)) {
+    const self = ref.deref?.()
+    if (!self) {
+      instanceRefs.delete(ref)
+      continue
+    }
+    if (!instanceMatchesStatusTarget(self, host, port)) continue
+    if (self.__vbsDisplayPresetSignature === signature) continue
 
-  try { self.updateActions() } catch (err) { self.log?.('warn', `Display preset action refresh failed: ${err?.message || err}`) }
-  try { self.updatePresets() } catch (err) { self.log?.('warn', `Display preset preset refresh failed: ${err?.message || err}`) }
+    self.__vbsDisplayPresetSignature = signature
+    self.state.remoteDisplayPresets = presets
+
+    try { self.updateActions() } catch (err) { self.log?.('warn', `Display preset action refresh failed: ${err?.message || err}`) }
+    try { self.updatePresets() } catch (err) { self.log?.('warn', `Display preset preset refresh failed: ${err?.message || err}`) }
+  }
 }
 
 function wrapActions(originalActions) {
@@ -147,7 +173,7 @@ function wrapRemoteStatus(originalRemoteStatus) {
   return Object.assign({}, originalRemoteStatus, {
     fetchStatus: async function fetchStatusWithDisplayPresets(...args) {
       const snapshot = await originalRemoteStatus.fetchStatus(...args)
-      try { updateFromSnapshot(snapshot) } catch { }
+      try { updateFromSnapshot(snapshot, args[0], args[1]) } catch { }
       return snapshot
     },
   })
