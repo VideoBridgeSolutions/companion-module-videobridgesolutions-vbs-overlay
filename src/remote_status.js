@@ -1,49 +1,5 @@
 const net = require('node:net')
 
-let latestStatusSnapshot = null
-const statusSnapshotSubscribers = new Set()
-
-function publishStatusSnapshot(snapshot) {
-  latestStatusSnapshot = snapshot || null
-
-  for (const subscription of Array.from(statusSnapshotSubscribers)) {
-    try {
-      const owner = subscription.ownerRef?.deref?.()
-      if (!owner) {
-        statusSnapshotSubscribers.delete(subscription)
-        continue
-      }
-      subscription.callback(owner, latestStatusSnapshot)
-    } catch {
-      // A dynamic UI subscriber must never break remote status polling.
-    }
-  }
-}
-
-function getLatestStatus() {
-  return latestStatusSnapshot
-}
-
-function subscribeStatusSnapshots(owner, callback) {
-  if (!owner || typeof callback !== 'function') return () => {}
-
-  const subscription = {
-    ownerRef: new WeakRef(owner),
-    callback,
-  }
-  statusSnapshotSubscribers.add(subscription)
-
-  if (latestStatusSnapshot) {
-    try {
-      callback(owner, latestStatusSnapshot)
-    } catch {
-      // ignore subscriber failures
-    }
-  }
-
-  return () => statusSnapshotSubscribers.delete(subscription)
-}
-
 function tcpRequest(host, port, payload, timeoutMs = 1200) {
   return new Promise((resolve, reject) => {
     const socket = new net.Socket()
@@ -109,14 +65,10 @@ async function fetchStatus(host, port, timeoutMs = 1200) {
   const response = await tcpRequest(host, port, 'STATUS\n', timeoutMs)
   const text = String(response || '').trim()
   if (!text) throw new Error('Empty status response')
-  const snapshot = JSON.parse(text)
-  publishStatusSnapshot(snapshot)
-  return snapshot
+  return JSON.parse(text)
 }
 
 module.exports = {
   pingStatus,
   fetchStatus,
-  getLatestStatus,
-  subscribeStatusSnapshots,
 }
