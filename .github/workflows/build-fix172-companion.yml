@@ -1,0 +1,41 @@
+name: Build Fix172 Companion Package
+
+on:
+  push:
+    branches:
+      - build-fix172-companion
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.18.0'
+
+      - name: Install runtime dependencies
+        run: npm install --omit=dev --ignore-scripts
+
+      - name: Build Companion import package
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf pkg
+          mkdir -p pkg
+          cp -R companion src node_modules pkg/
+          cp package.json LICENSE README.md pkg/
+          tar -czf companion-module-videobridgesolutions-vbs-overlay-1.0.0-fix172.tgz pkg
+          zip -qr companion-module-videobridgesolutions-vbs-overlay-fix172-source.zip companion src package.json LICENSE README.md BITFOCUS_RELEASE_CHECKLIST.md
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: companion-vbs-overlay-fix172
+          path: |
+            companion-module-videobridgesolutions-vbs-overlay-1.0.0-fix172.tgz
+            companion-module-videobridgesolutions-vbs-overlay-fix172-source.zip
+          if-no-files-found: error
