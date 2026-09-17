@@ -1,7 +1,7 @@
 {
   "name": "companion-module-videobridgesolutions-vbs-overlay",
   "version": "1.0.0",
-  "main": "src/main.js",
+  "main": "src/main_fix171.js",
   "license": "MIT",
   "repository": {
     "type": "git",
