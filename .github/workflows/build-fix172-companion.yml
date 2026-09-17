@@ -17,25 +17,30 @@ jobs:
         with:
           node-version: '22.18.0'
 
-      - name: Install runtime dependencies
-        run: npm install --omit=dev --ignore-scripts
+      - name: Install dependencies and official Companion builder
+        run: |
+          npm install --ignore-scripts
+          npm install --no-save @companion-module/tools@2.8.0
 
-      - name: Build Companion import package
+      - name: Validate module
+        run: npx companion-module-check
+
+      - name: Build official Companion package
+        run: npx companion-module-build
+
+      - name: Collect artifacts
         shell: bash
         run: |
           set -euo pipefail
-          rm -rf pkg
-          mkdir -p pkg
-          cp -R companion src node_modules pkg/
-          cp package.json LICENSE README.md pkg/
-          tar -czf companion-module-videobridgesolutions-vbs-overlay-1.0.0-fix172.tgz pkg
+          find . -maxdepth 3 -type f \( -name '*.tgz' -o -name '*.tar.gz' -o -name '*.zip' \) -print
           zip -qr companion-module-videobridgesolutions-vbs-overlay-fix172-source.zip companion src package.json LICENSE README.md BITFOCUS_RELEASE_CHECKLIST.md
+          mkdir -p out
+          find . -maxdepth 3 -type f \( -name '*.tgz' -o -name '*.tar.gz' \) -exec cp {} out/ \;
+          cp companion-module-videobridgesolutions-vbs-overlay-fix172-source.zip out/
 
       - name: Upload package artifact
         uses: actions/upload-artifact@v4
         with:
-          name: companion-vbs-overlay-fix172
-          path: |
-            companion-module-videobridgesolutions-vbs-overlay-1.0.0-fix172.tgz
-            companion-module-videobridgesolutions-vbs-overlay-fix172-source.zip
+          name: companion-vbs-overlay-fix172-official
+          path: out/*
           if-no-files-found: error
