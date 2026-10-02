@@ -1,0 +1,48 @@
+name: TEMP Build Resolume Redundant TGZ
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: resolume-redundant-build
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.20.0'
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Extract Resolume module source
+        run: |
+          rm -rf /tmp/resolume-redundant
+          mkdir -p /tmp/resolume-redundant
+          unzip -q .build/resolume_redundant_source.zip -d /tmp/resolume-redundant
+
+      - name: Install dependencies
+        working-directory: /tmp/resolume-redundant/companion-module-resolume-redundant
+        run: yarn install
+
+      - name: Build Companion package
+        working-directory: /tmp/resolume-redundant/companion-module-resolume-redundant
+        run: yarn package
+
+      - name: Collect TGZ
+        run: |
+          mkdir -p output
+          cp /tmp/resolume-redundant/companion-module-resolume-redundant/*.tgz output/
+          tar -tzf output/*.tgz | head -50
+          ls -lah output
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: resolume-redundant-tgz
+          path: output/*.tgz
+          if-no-files-found: error
